@@ -1,10 +1,14 @@
 const express = require("express")
 
-const app = express()
+const { getEndpoints } = require("./controllers/api.controllers")
 const { getAllTopics } = require("./controllers/topics.controller")
 const { handleServerErrors } = require("./errors/errors")
 
-app.use("/api/topics", getAllTopics)
+const app = express()
+
+app.get("/api", getEndpoints)
+
+app.get("/api/topics", getAllTopics)
 
 app.use(handleServerErrors)
 
