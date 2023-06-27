@@ -46,7 +46,7 @@ describe("GET /api/", () => {
     })
 })
 describe("GET:/api/topics", () => {
-    test("status: 200 - should resolve with topics array, each topic should have the correct keys", () => {
+    test("status: 200 - should responds with topics array, each topic should have the correct keys", () => {
         return request(app)
             .get("/api/topics")
             .expect(200)
@@ -64,3 +64,41 @@ describe("GET:/api/topics", () => {
             })
     })
 })
+describe("GET /api/articles/:article_id", () => {
+    test("status: 200, - should responds with an article object, which should have the correct keys", () => {
+        return request(app)
+            .get("/api/articles/1")
+            .expect(200)
+            .then(({ body }) => {
+                const { article } = body
+                expect(typeof article).toBe("object")
+                expect(article).toHaveProperty("article_id", expect.any(Number))
+                expect(article).toHaveProperty("author", expect.any(String))
+                expect(article).toHaveProperty("title", expect.any(String))
+                expect(article).toHaveProperty("body", expect.any(String))
+                expect(article).toHaveProperty("topic", expect.any(String))
+                expect(article).toHaveProperty("created_at", expect.any(String))
+                expect(article).toHaveProperty("votes", expect.any(Number))
+                expect(article).toHaveProperty("article_img_url",expect.any(String)
+                )
+            })
+    })
+    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+        return request(app)
+            .get("/api/articles/NaN")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 404 - should responds not found when article_id is a non existent id", () => {
+        return request(app)
+            .get("/api/articles/88888888")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("article not found")
+            })
+    })
+})
+
+
