@@ -2,6 +2,8 @@ const {
     selectAllArticles,
     selectArticleById,
     selectCommentsByArticleId,
+    insertCommentByArticleId,
+    selectUserByUsername,
 } = require("../models/articles.models")
 
 exports.getAllArticles = (_, res, next) => {
@@ -34,6 +36,26 @@ exports.getCommentsByArticleId = (req, res, next) => {
             const comments = resolvedPromises[0]
 
             res.status(200).send({ comments })
+        })
+        .catch((err) => {
+            next(err)
+        })
+}
+
+exports.addCommentForAnArticle = (req, res, next) => {
+    const { article_id } = req.params
+    const { username, body } = req.body
+
+    const promises = [
+        selectUserByUsername(username),
+        selectArticleById(article_id),
+        insertCommentByArticleId(article_id, username, body),
+    ]
+    Promise.all(promises)
+        .then((resolvedPromises) => {
+            const comment = resolvedPromises[2]
+
+            res.status(201).send({ comment })
         })
         .catch((err) => {
             next(err)
