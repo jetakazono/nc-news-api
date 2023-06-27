@@ -81,12 +81,16 @@ describe("GET /api/articles", () => {
                 articles.forEach((article) => {
                     expect(article).toHaveProperty("author"), expect.any(String)
                     expect(article).toHaveProperty("title"), expect.any(String)
-                    expect(article).toHaveProperty("article_id"), expect.any(Number)
+                    expect(article).toHaveProperty("article_id"),
+                        expect.any(Number)
                     expect(article).toHaveProperty("topic"), expect.any(String)
-                    expect(article).toHaveProperty("created_at"), expect.any(Number)
+                    expect(article).toHaveProperty("created_at"),
+                        expect.any(Number)
                     expect(article).toHaveProperty("votes"), expect.any(Number)
-                    expect(article).toHaveProperty("article_img_url"), expect.any(String)
-                    expect(article).toHaveProperty("comment_count"), expect.any(Number)
+                    expect(article).toHaveProperty("article_img_url"),
+                        expect.any(String)
+                    expect(article).toHaveProperty("comment_count"),
+                        expect.any(Number)
                 })
             })
     })
@@ -125,7 +129,58 @@ describe("GET /api/articles/:article_id", () => {
             .get("/api/articles/88888888")
             .expect(404)
             .then(({ body }) => {
-                expect(body.msg).toBe("article not found")
+                expect(body.msg).toBe("not found")
+            })
+    })
+})
+
+describe("GET /api/articles/:article_id/comments", () => {
+    test("should responds with an array of comments for the given article_id of which each comment should have the correct keys and comments should be sorted by the most recent comments", () => {
+        return request(app)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body }) => {
+                const { comments } = body
+                expect(comments).toBeInstanceOf(Array)
+                expect(comments).toBeSortedBy("created_at", {
+                    descending: true,
+                })
+                expect(comments).toHaveLength(11)
+                comments.forEach((comment) => {
+                    expect(comment).toHaveProperty("comment_id"),
+                        expect.any(Number)
+                    expect(comment).toHaveProperty("votes"), expect.any(Number)
+                    expect(comment).toHaveProperty("created_at"),
+                        expect.any(String)
+                    expect(comment).toHaveProperty("author"), expect.any(String)
+                    expect(comment).toHaveProperty("body"), expect.any(String)
+                    expect(comment).toHaveProperty("article_id"),
+                        expect.any(Number)
+                })
+            })
+    })
+    test("status: 200 - should responds with an empty array for article that has no comments", () => {
+        return request(app)
+            .get("/api/articles/2/comments")
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.comments).toHaveLength(0)
+            })
+    })
+    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+        return request(app)
+            .get("/api/articles/NaN/comments")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 404 - should responds not found when article_id is a non existent id", () => {
+        return request(app)
+            .get("/api/articles/88888888/comments")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
             })
     })
 })

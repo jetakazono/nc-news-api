@@ -5,6 +5,7 @@ const { getAllTopics } = require("./controllers/topics.controller")
 const {
     getAllArticles,
     getArticleById,
+    getCommentsByArticleId,
 } = require("./controllers/articles.controller")
 const {
     handleServerErrors,
@@ -21,6 +22,8 @@ app.get("/api/topics", getAllTopics)
 app.get("/api/articles/:article_id", getArticleById)
 
 app.get("/api/articles", getAllArticles)
+
+app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
 
 app.all("*", (_, res) => {
     res.status(404).send({ msg: "not found" })
