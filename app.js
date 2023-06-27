@@ -2,7 +2,10 @@ const express = require("express")
 
 const { getEndpoints } = require("./controllers/api.controllers")
 const { getAllTopics } = require("./controllers/topics.controller")
-const { getArticleById } = require("./controllers/articles.controller")
+const {
+    getAllArticles,
+    getArticleById,
+} = require("./controllers/articles.controller")
 const {
     handleServerErrors,
     handlePsqlErrors,
@@ -16,6 +19,8 @@ app.get("/api", getEndpoints)
 app.get("/api/topics", getAllTopics)
 
 app.get("/api/articles/:article_id", getArticleById)
+
+app.get("/api/articles", getAllArticles)
 
 app.all("*", (_, res) => {
     res.status(404).send({ msg: "not found" })
