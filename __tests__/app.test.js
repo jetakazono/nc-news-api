@@ -4,6 +4,7 @@ const seed = require("../db/seeds/seed")
 const testData = require("../db/data/test-data")
 const app = require("../app")
 const db = require("../db/connection")
+const endPointsFile = require("../endpoints.json")
 
 beforeEach(() => seed(testData))
 
@@ -15,11 +16,16 @@ describe("GET /api/", () => {
             .get("/api")
             .expect(200)
             .then(({ body }) => {
-                const { endpoints } = body
-                expect(typeof endpoints).toBe("object")
+                const { endPoints } = body
+
+                expect(Object.keys(endPoints)).toHaveLength(
+                    Object.keys(endPointsFile).length
+                )
+                expect(typeof endPoints).toBe("object")
+                expect(endPoints).toEqual(endPointsFile)
                 expect(
-                    Object.values(endpoints).forEach((endpoint) => {
-                        if (!endpoints["GET /api"]) {
+                    Object.values(endPoints).forEach((endpoint) => {
+                        if (!endPoints["GET /api"]) {
                             expect(endpoint).toMatchObject({
                                 description: expect.any(String),
                                 queries: expect.any(Array),
@@ -31,7 +37,12 @@ describe("GET /api/", () => {
             })
     })
     test("status: 404 - when given an invalid endpoint", () => {
-        return request(app).get("/apiInvalid").expect(404)
+        return request(app)
+            .get("/apiInvalid")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
     })
 })
 describe("GET:/api/topics", () => {
@@ -47,7 +58,8 @@ describe("GET:/api/topics", () => {
 
                 topics.forEach((topic) => {
                     expect(topic).toHaveProperty("slug"), expect.any(String)
-                    expect(topic).toHaveProperty("description"), expect.any(String)
+                    expect(topic).toHaveProperty("description"),
+                        expect.any(String)
                 })
             })
     })
