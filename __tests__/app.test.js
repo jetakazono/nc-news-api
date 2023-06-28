@@ -186,7 +186,7 @@ describe("GET /api/articles/:article_id/comments", () => {
     })
 })
 describe("POST /api/articles/:article_id/comments", () => {
-    test("status: 200 - should responds with the posted comment", () => {
+    test("status: 201 - should responds with the posted comment", () => {
         const testComment = {
             username: "butter_bridge",
             body: "a new comment",
@@ -201,7 +201,7 @@ describe("POST /api/articles/:article_id/comments", () => {
                 expect(typeof comment).toBe("object")
                 expect(Object.keys(comment)).toHaveLength(6)
                 expect(comment).toMatchObject({
-                    comment_id: expect.any(Number),
+                    comment_id: 19,
                     body: expect.any(String),
                     article_id: expect.any(Number),
                     author: expect.any(String),
@@ -209,6 +209,17 @@ describe("POST /api/articles/:article_id/comments", () => {
                     created_at: expect.any(String),
                 })
             })
+    })
+    test("status: 201 - should ignore unnecessary properties given", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+            unnecessaryProperty: "unnecessary",
+        }
+        return request(app)
+            .post("/api/articles/11/comments")
+            .send(testComment)
+            .expect(201)
     })
     test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
         const testComment = {
@@ -228,7 +239,7 @@ describe("POST /api/articles/:article_id/comments", () => {
             username: "butter_bridge",
         }
         return request(app)
-            .post("/api/articles/NaN/comments")
+            .post("/api/articles/1/comments")
             .send(testComment)
             .expect(400)
             .then(({ body }) => {
