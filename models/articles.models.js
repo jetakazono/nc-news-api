@@ -1,15 +1,41 @@
 const db = require("../db/connection")
 
-exports.selectAllArticles = () => {
-    const queryStr = `
+exports.selectAllArticles = (topic, sort_by = "created_at", order = "DESC") => {
+    const queryValues = []
+    const validSortBy = [
+        "created_at",
+        "author",
+        "title",
+        "topic",
+        "votes",
+        "comment_count",
+    ]
+    const validOrderBy = ["DESC", "ASC"]
+
+    if (
+        !validOrderBy.includes(order.toUpperCase()) ||
+        !validSortBy.includes(sort_by)
+    ) {
+        return Promise.reject({
+            status: 400,
+            msg: "bad request",
+        })
+    }
+
+    let queryStr = `
     SELECT a.article_id, a.author, a.title, a.topic, a.created_at, a.votes, a.article_img_url, 
     COUNT(c.comment_id) AS comment_count
     FROM articles a 
-    LEFT JOIN comments c ON c.article_id = a.article_id
-    GROUP BY a.article_id
-    ORDER BY a.created_at DESC;`
+    LEFT JOIN comments c ON c.article_id = a.article_id `
 
-    return db.query(queryStr).then(({ rows }) => {
+    if (topic) {
+        queryStr += `WHERE a.topic = $1 `
+        queryValues.push(topic)
+    }
+    if (sort_by) {
+        queryStr += `GROUP BY a.article_id ORDER BY a.${sort_by} ${order}`
+    }
+    return db.query(queryStr, queryValues).then(({ rows }) => {
         return rows
     })
 }
@@ -50,5 +76,22 @@ exports.insertCommentByArticleId = (article_id, username, body) => {
 
     return db.query(queryStr, [body, username, article_id]).then(({ rows }) => {
         return rows[0]
+    })
+}
+
+exports.checkTopicExists = (topic) => {
+    if (Number(topic)) {
+        return Promise.reject({ status: 400, msg: "bad request" })
+    }
+    const queryStr = `
+        SELECT *
+        FROM topics
+        WHERE slug = $1;`
+    return db.query(queryStr, [topic]).then(({ rows }) => {
+        if (!rows.length) {
+            return Promise.reject({ status: 404, msg: "not found" })
+        }
+
+        return rows
     })
 }

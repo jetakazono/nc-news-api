@@ -6,6 +6,7 @@ const app = require("../app")
 const db = require("../db/connection")
 const endPointsFile = require("../endpoints.json")
 const { forEach } = require("../db/data/test-data/comments")
+const articles = require("../db/data/test-data/articles")
 
 beforeEach(() => seed(testData))
 
@@ -37,17 +38,19 @@ describe("GET /api/", () => {
                 )
             })
     })
-    test("status: 404 - when given an invalid endpoint", () => {
+})
+describe("ALL non-existent path", () => {
+    test("status: 404 - should return a custom error message when the path is not found", () => {
         return request(app)
-            .get("/apiInvalid")
+            .get("/invalidPath")
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
             })
     })
 })
-describe("GET:/api/topics", () => {
-    test("status: 200 - should responds with topics array, each topic should have the correct keys", () => {
+describe("GET /api/topics", () => {
+    test("status: 200 - should respond with topics array, each topic should have the correct keys", () => {
         return request(app)
             .get("/api/topics")
             .expect(200)
@@ -66,7 +69,7 @@ describe("GET:/api/topics", () => {
     })
 })
 describe("GET /api/articles", () => {
-    test("status: 200 - should responds with an articles array of article objects, each of which should have the correct keys, the objects should be sorted by date in descending order by default", () => {
+    test("status: 200 - should respond with an articles array of article objects, each of which should have the correct keys, the objects should be sorted by date in descending order by default", () => {
         return request(app)
             .get("/api/articles")
             .expect(200)
@@ -95,9 +98,151 @@ describe("GET /api/articles", () => {
                 })
             })
     })
+    test("status: 200 - should accept topic query, which filters the articles by the topic value specified in the query. If the query is omitted, the endpoint should respond with all articles", () => {
+        return request(app)
+            .get("/api/articles?topic=cats")
+            .expect(200)
+            .then(({ body }) => {
+                const { articles } = body
+
+                expect(articles).toBeInstanceOf(Array)
+                expect(articles).toHaveLength(1)
+
+                articles.forEach((article) => {
+                    expect(article.topic).toBe("cats")
+                })
+            })
+    })
+    test("status: 200 - should accept queries, which filters the articles by the topic and order by ascending or descending a specific column", () => {
+        return request(app)
+            .get("/api/articles?topic=mitch&order=ASC")
+            .expect(200)
+            .then(({ body }) => {
+                const { articles } = body
+
+                expect(articles).toBeInstanceOf(Array)
+                expect(articles).toHaveLength(12)
+
+                articles.forEach((article) => {
+                    expect(article.topic).toBe("mitch")
+                })
+            })
+    })
+    test("status: 200 - should respond with an empty object when given a valid topic but has no articles", () => {
+        return request(app)
+            .get("/api/articles?topic=paper")
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.articles).toHaveLength(0)
+            })
+    })
+    test("status: 200 - should accept sort_by query, which sorts the articles by any valid column defaults to date", () => {
+        return request(app)
+            .get("/api/articles?sort_by=votes")
+            .expect(200)
+            .then(({ body }) => {
+                const { articles } = body
+
+                expect(articles).toBeInstanceOf(Array)
+                expect(articles).toHaveLength(13)
+                expect(articles).toBeSortedBy("votes", {
+                    descending: true,
+                })
+            })
+    })
+    test("status: 200 - should accept order query, which can be set to asc or desc for ascending or descending. Defaults to descending", () => {
+        return request(app)
+            .get("/api/articles?order=ASC")
+            .expect(200)
+            .then(({ body }) => {
+                const { articles } = body
+
+                expect(articles).toBeInstanceOf(Array)
+                expect(articles).toHaveLength(13)
+                expect(articles).toBeSortedBy("created_at")
+            })
+    })
+    test("status: 200 - should accept multiples queries, which can be set for ascending or descending a specific column", () => {
+        return request(app)
+            .get("/api/articles?sort_by=title&order=asc")
+            .expect(200)
+            .then(({ body }) => {
+                const { articles } = body
+
+                expect(articles).toBeInstanceOf(Array)
+                expect(articles).toHaveLength(13)
+                expect(articles).toBeSortedBy("title")
+            })
+    })
+    test("status: 200 - should accept multiples queries, which can filter the articles by the topic and set for ascending or descending a specific column", () => {
+        return request(app)
+            .get("/api/articles?topic=mitch&sort_by=author&order=asc")
+            .expect(200)
+            .then(({ body }) => {
+                const { articles } = body
+
+                expect(articles).toBeInstanceOf(Array)
+                expect(articles).toHaveLength(12)
+                expect(articles).toBeSortedBy("author")
+            })
+    })
+    test("status: 200 - should ignore given unnecessary queries and consider only valid ones", () => {
+        return request(app)
+            .get(
+                "/api/articles?topic=mitch&sort_by=author&unnecessary=unnecessary&order=asc&unnecessary=unnecessary"
+            )
+            .expect(200)
+            .then(({ body }) => {
+                const { articles } = body
+
+                expect(articles).toBeInstanceOf(Array)
+                expect(articles).toHaveLength(12)
+                expect(articles).toBeSortedBy("author")
+            })
+    })
+    test("status: 400 - should respond with bad request when topic given is an invalid type", () => {
+        return request(app)
+            .get("/api/articles?topic=88888")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when sort_by is an invalid column ", () => {
+        return request(app)
+            .get("/api/articles?sort_by=invalidColumn")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when order given is an invalid value", () => {
+        return request(app)
+            .get("/api/articles?order=ASCENDING")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when order given is an invalid type", () => {
+        return request(app)
+            .get("/api/articles?order=8888")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 404 - should respond with not found when topic is a non existent topic", () => {
+        return request(app)
+            .get("/api/articles?topic=invalidTopic")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
 })
 describe("GET /api/articles/:article_id", () => {
-    test("status: 200, - should responds with an article object, which should have the correct keys", () => {
+    test("status: 200, - should respond with an article object, which should have the correct keys", () => {
         return request(app)
             .get("/api/articles/1")
             .expect(200)
@@ -117,7 +262,7 @@ describe("GET /api/articles/:article_id", () => {
                 )
             })
     })
-    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
         return request(app)
             .get("/api/articles/NaN")
             .expect(400)
@@ -125,7 +270,7 @@ describe("GET /api/articles/:article_id", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
-    test("status: 404 - should responds not found when article_id is a non existent id", () => {
+    test("status: 404 - should respond not found when article_id is a non existent id", () => {
         return request(app)
             .get("/api/articles/88888888")
             .expect(404)
@@ -134,9 +279,8 @@ describe("GET /api/articles/:article_id", () => {
             })
     })
 })
-
 describe("GET /api/articles/:article_id/comments", () => {
-    test("should responds with an array of comments for the given article_id of which each comment should have the correct keys and comments should be sorted by the most recent comments", () => {
+    test("should respond with an array of comments for the given article_id of which each comment should have the correct keys and comments should be sorted by the most recent comments", () => {
         return request(app)
             .get("/api/articles/1/comments")
             .expect(200)
@@ -160,7 +304,7 @@ describe("GET /api/articles/:article_id/comments", () => {
                 })
             })
     })
-    test("status: 200 - should responds with an empty array for article that has no comments", () => {
+    test("status: 200 - should respond with an empty array for article that has no comments", () => {
         return request(app)
             .get("/api/articles/2/comments")
             .expect(200)
@@ -168,7 +312,7 @@ describe("GET /api/articles/:article_id/comments", () => {
                 expect(body.comments).toHaveLength(0)
             })
     })
-    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
         return request(app)
             .get("/api/articles/NaN/comments")
             .expect(400)
@@ -176,7 +320,7 @@ describe("GET /api/articles/:article_id/comments", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
-    test("status: 404 - should responds not found when article_id is a non existent id", () => {
+    test("status: 404 - should respond not found when article_id is a non existent id", () => {
         return request(app)
             .get("/api/articles/88888888/comments")
             .expect(404)
@@ -185,28 +329,8 @@ describe("GET /api/articles/:article_id/comments", () => {
             })
     })
 })
-describe("GET /api/users", () => {
-    test("status: 200 - should respond with an array of objects, each object should have the correct keys", () => {
-        return request(app)
-            .get("/api/users")
-            .expect(200)
-            .then(({ body }) => {
-                const { users } = body
-
-                expect(users).toBeInstanceOf(Array)
-                expect(users).toHaveLength(4)
-                users.forEach((user) => {
-                    expect(user).toMatchObject({
-                        username: expect.any(String),
-                        name: expect.any(String),
-                        avatar_url: expect.any(String),
-                    })
-                })
-            })
-    })
-})
 describe("POST /api/articles/:article_id/comments", () => {
-    test("status: 201 - should responds with the posted comment", () => {
+    test("status: 201 - should respond with the posted comment", () => {
         const testComment = {
             username: "butter_bridge",
             body: "a new comment",
@@ -241,7 +365,7 @@ describe("POST /api/articles/:article_id/comments", () => {
             .send(testComment)
             .expect(201)
     })
-    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
         const testComment = {
             username: "butter_bridge",
             body: "a new comment",
@@ -254,7 +378,7 @@ describe("POST /api/articles/:article_id/comments", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
-    test("status: 400 - should responds with bad request when required values is not given", () => {
+    test("status: 400 - should respond with bad request when required values is not given", () => {
         const testComment = {
             username: "butter_bridge",
         }
@@ -266,7 +390,7 @@ describe("POST /api/articles/:article_id/comments", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
-    test("status 404 - should responds with not found when username is an a non existent user", () => {
+    test("status 404 - should respond with not found when username is an a non existent user", () => {
         const testComment = {
             username: "obi",
             body: "a new comment",
@@ -279,7 +403,7 @@ describe("POST /api/articles/:article_id/comments", () => {
                 expect(body.msg).toBe("not found")
             })
     })
-    test("status: 404 - should responds with not found when article_id is a non existent id", () => {
+    test("status: 404 - should respond with not found when article_id is a non existent id", () => {
         const testComment = {
             username: "butter_bridge",
             body: "a new comment",
@@ -290,6 +414,26 @@ describe("POST /api/articles/:article_id/comments", () => {
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
+            })
+    })
+})
+describe("GET /api/users", () => {
+    test("status: 200 - should respond with an array of objects, each object should have the correct keys", () => {
+        return request(app)
+            .get("/api/users")
+            .expect(200)
+            .then(({ body }) => {
+                const { users } = body
+
+                expect(users).toBeInstanceOf(Array)
+                expect(users).toHaveLength(4)
+                users.forEach((user) => {
+                    expect(user).toMatchObject({
+                        username: expect.any(String),
+                        name: expect.any(String),
+                        avatar_url: expect.any(String),
+                    })
+                })
             })
     })
 })
