@@ -46,7 +46,7 @@ describe("GET /api/", () => {
     })
 })
 describe("GET:/api/topics", () => {
-    test("status: 200 - should responds with topics array, each topic should have the correct keys", () => {
+    test("status: 200 - should respond with topics array, each topic should have the correct keys", () => {
         return request(app)
             .get("/api/topics")
             .expect(200)
@@ -65,7 +65,7 @@ describe("GET:/api/topics", () => {
     })
 })
 describe("GET /api/articles", () => {
-    test("status: 200 - should responds with an articles array of article objects, each of which should have the correct keys, the objects should be sorted by date in descending order by default", () => {
+    test("status: 200 - should respond with an articles array of article objects, each of which should have the correct keys, the objects should be sorted by date in descending order by default", () => {
         return request(app)
             .get("/api/articles")
             .expect(200)
@@ -96,7 +96,7 @@ describe("GET /api/articles", () => {
     })
 })
 describe("GET /api/articles/:article_id", () => {
-    test("status: 200, - should responds with an article object, which should have the correct keys", () => {
+    test("status: 200, - should respond with an article object, which should have the correct keys", () => {
         return request(app)
             .get("/api/articles/1")
             .expect(200)
@@ -116,7 +116,7 @@ describe("GET /api/articles/:article_id", () => {
                 )
             })
     })
-    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
         return request(app)
             .get("/api/articles/NaN")
             .expect(400)
@@ -124,7 +124,7 @@ describe("GET /api/articles/:article_id", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
-    test("status: 404 - should responds not found when article_id is a non existent id", () => {
+    test("status: 404 - should respond not found when article_id is a non existent id", () => {
         return request(app)
             .get("/api/articles/88888888")
             .expect(404)
@@ -135,7 +135,7 @@ describe("GET /api/articles/:article_id", () => {
 })
 
 describe("GET /api/articles/:article_id/comments", () => {
-    test("should responds with an array of comments for the given article_id of which each comment should have the correct keys and comments should be sorted by the most recent comments", () => {
+    test("should respond with an array of comments for the given article_id of which each comment should have the correct keys and comments should be sorted by the most recent comments", () => {
         return request(app)
             .get("/api/articles/1/comments")
             .expect(200)
@@ -159,7 +159,7 @@ describe("GET /api/articles/:article_id/comments", () => {
                 })
             })
     })
-    test("status: 200 - should responds with an empty array for article that has no comments", () => {
+    test("status: 200 - should respond with an empty array for article that has no comments", () => {
         return request(app)
             .get("/api/articles/2/comments")
             .expect(200)
@@ -167,7 +167,7 @@ describe("GET /api/articles/:article_id/comments", () => {
                 expect(body.comments).toHaveLength(0)
             })
     })
-    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
         return request(app)
             .get("/api/articles/NaN/comments")
             .expect(400)
@@ -175,9 +175,84 @@ describe("GET /api/articles/:article_id/comments", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
-    test("status: 404 - should responds not found when article_id is a non existent id", () => {
+    test("status: 404 - should respond not found when article_id is a non existent id", () => {
         return request(app)
             .get("/api/articles/88888888/comments")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+})
+describe("PATCH /api/articles/:article_id", () => {
+    test("status: 200 - should increment an article votes by input given when it is a positive number and respond with the updated article", () => {
+        const testUpdateVotes = { inc_votes: 1 }
+
+        return request(app)
+            .patch("/api/articles/1")
+            .send(testUpdateVotes)
+            .expect(200)
+            .then(({ body }) => {
+                const { article } = body
+
+                expect(typeof article).toBe("object")
+                expect(Object.keys(article)).toHaveLength(8)
+                expect(article).toMatchObject({
+                    article_id: expect.any(Number),
+                    title: expect.any(String),
+                    topic: expect.any(String),
+                    author: expect.any(String),
+                    body: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                })
+            })
+    })
+    test("status: 200 - should decrement an article votes by input given when it is a negative number and respond with the updated article", () => {
+        const testUpdateVotes = { inc_votes: -100 }
+
+        return request(app)
+            .patch("/api/articles/1")
+            .send(testUpdateVotes)
+            .expect(200)
+            .then(({ body }) => {
+                const { article } = body
+
+                expect(typeof article).toBe("object")
+                expect(Object.keys(article)).toHaveLength(8)
+                expect(article).toMatchObject({
+                    article_id: expect.any(Number),
+                    title: expect.any(String),
+                    topic: expect.any(String),
+                    author: expect.any(String),
+                    body: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                })
+            })
+    })
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
+        return request(app)
+            .patch("/api/articles/NaN")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when required value is not given ", () => {
+        return request(app)
+            .patch("/api/articles/1")
+            .expect(400)
+            .send({})
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 404 - should respond not found when article_id is a non existent id", () => {
+        return request(app)
+            .patch("/api/articles/88888888")
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")

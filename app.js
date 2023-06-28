@@ -6,6 +6,7 @@ const {
     getAllArticles,
     getArticleById,
     getCommentsByArticleId,
+    patchArticleById,
 } = require("./controllers/articles.controller")
 const {
     handleServerErrors,
@@ -14,6 +15,8 @@ const {
 } = require("./errors/errors")
 
 const app = express()
+
+app.use(express.json())
 
 app.get("/api", getEndpoints)
 
@@ -24,6 +27,8 @@ app.get("/api/articles/:article_id", getArticleById)
 app.get("/api/articles", getAllArticles)
 
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
+
+app.patch("/api/articles/:article_id", patchArticleById)
 
 app.all("*", (_, res) => {
     res.status(404).send({ msg: "not found" })

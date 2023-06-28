@@ -40,3 +40,14 @@ exports.selectCommentsByArticleId = (article_id) => {
         return rows
     })
 }
+
+exports.updateArticleById = (article_id, newVotes) => {
+    const queryStr = `
+        UPDATE articles
+        SET votes = votes + $1
+        WHERE article_id = $2
+        RETURNING *;`
+    return db.query(queryStr, [newVotes, article_id]).then(({ rows }) => {
+        return rows[0]
+    })
+}
