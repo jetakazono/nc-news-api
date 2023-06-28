@@ -52,18 +52,3 @@ exports.insertCommentByArticleId = (article_id, username, body) => {
         return rows[0]
     })
 }
-
-exports.selectUserByUsername = (username) => {
-    const queryStr = `
-        SELECT * 
-        FROM users
-        WHERE username = $1;`
-
-    return db.query(queryStr, [username]).then(({ rows }) => {
-        if (!rows[0]) {
-            return Promise.reject({ status: 404, msg: "not found" })
-        } else {
-            return rows[0]
-        }
-    })
-}
