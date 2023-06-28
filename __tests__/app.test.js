@@ -5,6 +5,7 @@ const testData = require("../db/data/test-data")
 const app = require("../app")
 const db = require("../db/connection")
 const endPointsFile = require("../endpoints.json")
+const { forEach } = require("../db/data/test-data/comments")
 
 beforeEach(() => seed(testData))
 
@@ -201,6 +202,94 @@ describe("GET /api/users", () => {
                         avatar_url: expect.any(String),
                     })
                 })
+            })
+    })
+})
+describe("POST /api/articles/:article_id/comments", () => {
+    test("status: 201 - should responds with the posted comment", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+        }
+        return request(app)
+            .post("/api/articles/11/comments")
+            .send(testComment)
+            .expect(201)
+            .then(({ body }) => {
+                const { comment } = body
+
+                expect(typeof comment).toBe("object")
+                expect(Object.keys(comment)).toHaveLength(6)
+                expect(comment).toMatchObject({
+                    comment_id: 19,
+                    body: expect.any(String),
+                    article_id: expect.any(Number),
+                    author: expect.any(String),
+                    votes: expect.any(Number),
+                    created_at: expect.any(String),
+                })
+            })
+    })
+    test("status: 201 - should ignore unnecessary properties given", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+            unnecessaryProperty: "unnecessary",
+        }
+        return request(app)
+            .post("/api/articles/11/comments")
+            .send(testComment)
+            .expect(201)
+    })
+    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+        }
+        return request(app)
+            .post("/api/articles/NaN/comments")
+            .send(testComment)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should responds with bad request when required values is not given", () => {
+        const testComment = {
+            username: "butter_bridge",
+        }
+        return request(app)
+            .post("/api/articles/1/comments")
+            .send(testComment)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status 404 - should responds with not found when username is an a non existent user", () => {
+        const testComment = {
+            username: "obi",
+            body: "a new comment",
+        }
+        return request(app)
+            .post("/api/articles/1/comments")
+            .send(testComment)
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+    test("status: 404 - should responds with not found when article_id is a non existent id", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+        }
+        return request(app)
+            .post("/api/articles/888888/comments")
+            .send(testComment)
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
             })
     })
 })
