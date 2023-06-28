@@ -185,6 +185,26 @@ describe("GET /api/articles/:article_id/comments", () => {
             })
     })
 })
+describe("GET /api/users", () => {
+    test("status: 200 - should respond with an array of objects, each object should have the correct keys", () => {
+        return request(app)
+            .get("/api/users")
+            .expect(200)
+            .then(({ body }) => {
+                const { users } = body
+
+                expect(users).toBeInstanceOf(Array)
+                expect(users).toHaveLength(4)
+                users.forEach((user) => {
+                    expect(user).toMatchObject({
+                        username: expect.any(String),
+                        name: expect.any(String),
+                        avatar_url: expect.any(String),
+                    })
+                })
+            })
+    })
+})
 describe("POST /api/articles/:article_id/comments", () => {
     test("status: 201 - should responds with the posted comment", () => {
         const testComment = {
