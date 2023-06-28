@@ -198,13 +198,13 @@ describe("PATCH /api/articles/:article_id", () => {
                 expect(typeof article).toBe("object")
                 expect(Object.keys(article)).toHaveLength(8)
                 expect(article).toMatchObject({
-                    article_id: expect.any(Number),
+                    article_id: 1,
                     title: expect.any(String),
                     topic: expect.any(String),
                     author: expect.any(String),
                     body: expect.any(String),
                     created_at: expect.any(String),
-                    votes: expect.any(Number),
+                    votes: 101,
                     article_img_url: expect.any(String),
                 })
             })
@@ -222,37 +222,46 @@ describe("PATCH /api/articles/:article_id", () => {
                 expect(typeof article).toBe("object")
                 expect(Object.keys(article)).toHaveLength(8)
                 expect(article).toMatchObject({
-                    article_id: expect.any(Number),
+                    article_id: 1,
                     title: expect.any(String),
                     topic: expect.any(String),
                     author: expect.any(String),
                     body: expect.any(String),
                     created_at: expect.any(String),
-                    votes: expect.any(Number),
+                    votes: 0,
                     article_img_url: expect.any(String),
                 })
             })
     })
-    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
-        return request(app)
-            .patch("/api/articles/NaN")
-            .expect(400)
-            .then(({ body }) => {
-                expect(body.msg).toBe("bad request")
-            })
-    })
     test("status: 400 - should respond with bad request when required value is not given ", () => {
+        const testUpdateVotes = {}
+
         return request(app)
             .patch("/api/articles/1")
+            .send(testUpdateVotes)
             .expect(400)
             .send({})
             .then(({ body }) => {
                 expect(body.msg).toBe("bad request")
             })
     })
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
+        const testUpdateVotes = { inc_votes: 10 }
+
+        return request(app)
+            .patch("/api/articles/NaN")
+            .send(testUpdateVotes)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
     test("status: 404 - should respond not found when article_id is a non existent id", () => {
+        const testUpdateVotes = { inc_votes: 10 }
+
         return request(app)
             .patch("/api/articles/88888888")
+            .send(testUpdateVotes)
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
