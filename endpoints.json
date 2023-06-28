@@ -110,5 +110,10 @@
         }
       ]
     }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "serves status 204 and no content.",
+    "queries": [],
+    "exampleResponse": {}
   }
 }
