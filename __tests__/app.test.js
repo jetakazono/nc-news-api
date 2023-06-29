@@ -244,10 +244,11 @@ describe("GET /api/articles", () => {
 describe("GET /api/articles/:article_id", () => {
     test("status: 200, - should respond with an article object, which should have the correct keys", () => {
         return request(app)
-            .get("/api/articles/1")
+            .get("/api/articles/3")
             .expect(200)
             .then(({ body }) => {
                 const { article } = body
+
                 expect(typeof article).toBe("object")
                 expect(article).toHaveProperty("article_id", expect.any(Number))
                 expect(article).toHaveProperty("author", expect.any(String))
@@ -260,6 +261,11 @@ describe("GET /api/articles/:article_id", () => {
                     "article_img_url",
                     expect.any(String)
                 )
+                expect(article).toHaveProperty(
+                    "comment_count",
+                    expect.any(String)
+                )
+                expect(article.comment_count).toBe("2")
             })
     })
     test("status: 400 - should respond with bad request when article_id is an invalid type", () => {

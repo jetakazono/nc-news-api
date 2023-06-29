@@ -42,9 +42,12 @@ exports.selectAllArticles = (topic, sort_by = "created_at", order = "DESC") => {
 
 exports.selectArticleById = (article_id) => {
     const queryStr = `
-        SELECT * 
-        FROM articles 
-        WHERE article_id = $1;`
+        SELECT a.*, 
+        COUNT(c.comment_id) AS comment_count 
+        FROM articles a
+        LEFT JOIN comments c ON c.article_id = a.article_id 
+        WHERE a.article_id = $1 
+        GROUP BY a.article_id;`
 
     return db.query(queryStr, [article_id]).then(({ rows }) => {
         if (!rows[0]) {
