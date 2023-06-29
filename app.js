@@ -1,45 +1,16 @@
 const express = require("express")
-
-const { getEndpoints } = require("./controllers/api.controllers")
-const { getAllTopics } = require("./controllers/topics.controllers")
-const {
-    getAllArticles,
-    getArticleById,
-    getCommentsByArticleId,
-    addCommentForAnArticle,
-    patchArticleById,
-} = require("./controllers/articles.controllers")
-
-const { getAllUsers } = require("./controllers/users.controllers")
-
-const { removeCommentById } = require("./controllers/comments.controllers")
+const app = express()
 const {
     handleServerErrors,
     handlePsqlErrors,
     handleCustomErrors,
 } = require("./errors/errors")
 
-const app = express()
+const apiRouter = require(`./routes/api-router`)
 
 app.use(express.json())
 
-app.get("/api", getEndpoints)
-
-app.get("/api/topics", getAllTopics)
-
-app.get("/api/articles/:article_id", getArticleById)
-
-app.get("/api/articles", getAllArticles)
-
-app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
-
-app.post("/api/articles/:article_id/comments", addCommentForAnArticle)
-
-app.patch("/api/articles/:article_id", patchArticleById)
-
-app.delete("/api/comments/:comment_id", removeCommentById)
-
-app.get("/api/users", getAllUsers)
+app.use("/api", apiRouter)
 
 app.all("*", (_, res) => {
     res.status(404).send({ msg: "not found" })
