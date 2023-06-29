@@ -115,7 +115,7 @@ describe("GET /api/articles", () => {
     })
     test("status: 200 - should accept queries, which filters the articles by the topic and order by ascending or descending a specific column", () => {
         return request(app)
-            .get("/api/articles?topic=mitch&order=ASC")
+            .get("/api/articles?topic=mitch&sort_by=author")
             .expect(200)
             .then(({ body }) => {
                 const { articles } = body
