@@ -549,7 +549,7 @@ describe("GET /api/users/:username", () => {
             .expect(200)
             .then(({ body }) => {
                 const { user } = body
-                console.log(body)
+
                 expect(user).toBeInstanceOf(Object)
                 expect(user.username).toBe("lurker")
                 expect(user).toHaveProperty("username")
