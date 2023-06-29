@@ -134,7 +134,6 @@ describe("GET /api/articles/:article_id", () => {
             })
     })
 })
-
 describe("GET /api/articles/:article_id/comments", () => {
     test("should responds with an array of comments for the given article_id of which each comment should have the correct keys and comments should be sorted by the most recent comments", () => {
         return request(app)
@@ -182,26 +181,6 @@ describe("GET /api/articles/:article_id/comments", () => {
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
-            })
-    })
-})
-describe("GET /api/users", () => {
-    test("status: 200 - should respond with an array of objects, each object should have the correct keys", () => {
-        return request(app)
-            .get("/api/users")
-            .expect(200)
-            .then(({ body }) => {
-                const { users } = body
-
-                expect(users).toBeInstanceOf(Array)
-                expect(users).toHaveLength(4)
-                users.forEach((user) => {
-                    expect(user).toMatchObject({
-                        username: expect.any(String),
-                        name: expect.any(String),
-                        avatar_url: expect.any(String),
-                    })
-                })
             })
     })
 })
@@ -290,6 +269,110 @@ describe("POST /api/articles/:article_id/comments", () => {
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
+            })
+    })
+})
+describe("PATCH /api/articles/:article_id", () => {
+    test("status: 200 - should increment an article votes by input given when it is a positive number and respond with the updated article", () => {
+        const testUpdateVotes = { inc_votes: 1 }
+
+        return request(app)
+            .patch("/api/articles/1")
+            .send(testUpdateVotes)
+            .expect(200)
+            .then(({ body }) => {
+                const { article } = body
+
+                expect(typeof article).toBe("object")
+                expect(Object.keys(article)).toHaveLength(8)
+                expect(article).toMatchObject({
+                    article_id: 1,
+                    title: expect.any(String),
+                    topic: expect.any(String),
+                    author: expect.any(String),
+                    body: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: 101,
+                    article_img_url: expect.any(String),
+                })
+            })
+    })
+    test("status: 200 - should decrement an article votes by input given when it is a negative number and respond with the updated article", () => {
+        const testUpdateVotes = { inc_votes: -100 }
+
+        return request(app)
+            .patch("/api/articles/1")
+            .send(testUpdateVotes)
+            .expect(200)
+            .then(({ body }) => {
+                const { article } = body
+
+                expect(typeof article).toBe("object")
+                expect(Object.keys(article)).toHaveLength(8)
+                expect(article).toMatchObject({
+                    article_id: 1,
+                    title: expect.any(String),
+                    topic: expect.any(String),
+                    author: expect.any(String),
+                    body: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: 0,
+                    article_img_url: expect.any(String),
+                })
+            })
+    })
+    test("status: 400 - should respond with bad request when required value is not given ", () => {
+        const testUpdateVotes = {}
+
+        return request(app)
+            .patch("/api/articles/1")
+            .send(testUpdateVotes)
+            .expect(400)
+            .send({})
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
+        const testUpdateVotes = { inc_votes: 10 }
+
+        return request(app)
+            .patch("/api/articles/NaN")
+            .send(testUpdateVotes)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 404 - should respond not found when article_id is a non existent id", () => {
+        const testUpdateVotes = { inc_votes: 10 }
+
+        return request(app)
+            .patch("/api/articles/88888888")
+            .send(testUpdateVotes)
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+})
+describe("GET /api/users", () => {
+    test("status: 200 - should respond with an array of objects, each object should have the correct keys", () => {
+        return request(app)
+            .get("/api/users")
+            .expect(200)
+            .then(({ body }) => {
+                const { users } = body
+
+                expect(users).toBeInstanceOf(Array)
+                expect(users).toHaveLength(4)
+                users.forEach((user) => {
+                    expect(user).toMatchObject({
+                        username: expect.any(String),
+                        name: expect.any(String),
+                        avatar_url: expect.any(String),
+                    })
+                })
             })
     })
 })

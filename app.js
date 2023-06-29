@@ -7,7 +7,9 @@ const {
     getArticleById,
     getCommentsByArticleId,
     addCommentForAnArticle,
+    patchArticleById,
 } = require("./controllers/articles.controllers")
+
 const { getAllUsers } = require("./controllers/users.controllers")
 const {
     handleServerErrors,
@@ -30,6 +32,8 @@ app.get("/api/articles", getAllArticles)
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
 
 app.post("/api/articles/:article_id/comments", addCommentForAnArticle)
+
+app.patch("/api/articles/:article_id", patchArticleById)
 
 app.get("/api/users", getAllUsers)
 
