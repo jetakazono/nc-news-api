@@ -3,6 +3,7 @@ const {
     selectArticleById,
     selectCommentsByArticleId,
     updateArticleById,
+    insertCommentByArticleId,
 } = require("../models/articles.models")
 
 exports.getAllArticles = (_, res, next) => {
@@ -52,6 +53,18 @@ exports.patchArticleById = (req, res, next) => {
         .then((resolvedPromises) => {
             const article = resolvedPromises[1]
             res.status(200).send({ article })
+        })
+        .catch((err) => {
+            next(err)
+        })
+}
+
+exports.addCommentForAnArticle = (req, res, next) => {
+    const { article_id } = req.params
+    const { username, body } = req.body
+    insertCommentByArticleId(article_id, username, body)
+        .then((comment) => {
+            res.status(201).send({ comment })
         })
         .catch((err) => {
             next(err)

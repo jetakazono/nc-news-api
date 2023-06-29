@@ -11,7 +11,7 @@
   },
   "GET /api/articles/:article_id": {
     "description": "serves an object of a specific article",
-    "queries":["article_id"],
+    "queries":[],
     "exampleResponse":  {
         "article": {
           "article_id": 1,
@@ -57,6 +57,58 @@
           "votes": 101,
           "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
         }
+      }
+    },
+  "GET /api/users": {
+    "description": "serves an array of objects with all users",
+    "queries": [],
+    "exampleResponse": {
+      "users":[
+        {
+          "username": "butter_bridge",
+          "name": "jonny",
+          "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+        },
+        {
+          "username": "icellusedkars",
+          "name": "sam",
+          "avatar_url": "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+        }
+      ]
+    }
+  },
+  "GET /api/articles/:article_id/comments":{
+    "description": "serves an array of all comments of an specific article sorted by date in descending order",
+    "queries": [],
+    "exampleResponse": {
+      "articles": [
+        {
+          "article_id": 1, 
+          "author": "weegembump",
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "created_at": "2018-05-30T15:59:13.341Z",
+          "votes": 0,
+          "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          "comment_count": 6
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments":{
+    "description": "adds a comment for an article",
+    "queries": [],
+    "exampleResponse": {
+      "comment": [
+        {
+          "comment_id": 19,
+          "body": "a new comment",
+          "article_id": 11,
+          "author": "butter_bridge",
+          "votes": 0,
+          "created_at": "2023-06-27T17:02:54.497Z"
+        }
+      ]
     }
   }
 }

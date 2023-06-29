@@ -5,6 +5,7 @@ const testData = require("../db/data/test-data")
 const app = require("../app")
 const db = require("../db/connection")
 const endPointsFile = require("../endpoints.json")
+const { forEach } = require("../db/data/test-data/comments")
 
 beforeEach(() => seed(testData))
 
@@ -46,7 +47,7 @@ describe("GET /api/", () => {
     })
 })
 describe("GET:/api/topics", () => {
-    test("status: 200 - should respond with topics array, each topic should have the correct keys", () => {
+    test("status: 200 - should responds with topics array, each topic should have the correct keys", () => {
         return request(app)
             .get("/api/topics")
             .expect(200)
@@ -65,7 +66,7 @@ describe("GET:/api/topics", () => {
     })
 })
 describe("GET /api/articles", () => {
-    test("status: 200 - should respond with an articles array of article objects, each of which should have the correct keys, the objects should be sorted by date in descending order by default", () => {
+    test("status: 200 - should responds with an articles array of article objects, each of which should have the correct keys, the objects should be sorted by date in descending order by default", () => {
         return request(app)
             .get("/api/articles")
             .expect(200)
@@ -96,7 +97,7 @@ describe("GET /api/articles", () => {
     })
 })
 describe("GET /api/articles/:article_id", () => {
-    test("status: 200, - should respond with an article object, which should have the correct keys", () => {
+    test("status: 200, - should responds with an article object, which should have the correct keys", () => {
         return request(app)
             .get("/api/articles/1")
             .expect(200)
@@ -116,7 +117,7 @@ describe("GET /api/articles/:article_id", () => {
                 )
             })
     })
-    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
+    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
         return request(app)
             .get("/api/articles/NaN")
             .expect(400)
@@ -124,7 +125,7 @@ describe("GET /api/articles/:article_id", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
-    test("status: 404 - should respond not found when article_id is a non existent id", () => {
+    test("status: 404 - should responds not found when article_id is a non existent id", () => {
         return request(app)
             .get("/api/articles/88888888")
             .expect(404)
@@ -133,9 +134,8 @@ describe("GET /api/articles/:article_id", () => {
             })
     })
 })
-
 describe("GET /api/articles/:article_id/comments", () => {
-    test("should respond with an array of comments for the given article_id of which each comment should have the correct keys and comments should be sorted by the most recent comments", () => {
+    test("should responds with an array of comments for the given article_id of which each comment should have the correct keys and comments should be sorted by the most recent comments", () => {
         return request(app)
             .get("/api/articles/1/comments")
             .expect(200)
@@ -159,7 +159,7 @@ describe("GET /api/articles/:article_id/comments", () => {
                 })
             })
     })
-    test("status: 200 - should respond with an empty array for article that has no comments", () => {
+    test("status: 200 - should responds with an empty array for article that has no comments", () => {
         return request(app)
             .get("/api/articles/2/comments")
             .expect(200)
@@ -167,7 +167,7 @@ describe("GET /api/articles/:article_id/comments", () => {
                 expect(body.comments).toHaveLength(0)
             })
     })
-    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
+    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
         return request(app)
             .get("/api/articles/NaN/comments")
             .expect(400)
@@ -175,9 +175,97 @@ describe("GET /api/articles/:article_id/comments", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
-    test("status: 404 - should respond not found when article_id is a non existent id", () => {
+    test("status: 404 - should responds not found when article_id is a non existent id", () => {
         return request(app)
             .get("/api/articles/88888888/comments")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+})
+describe("POST /api/articles/:article_id/comments", () => {
+    test("status: 201 - should responds with the posted comment", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+        }
+        return request(app)
+            .post("/api/articles/11/comments")
+            .send(testComment)
+            .expect(201)
+            .then(({ body }) => {
+                const { comment } = body
+
+                expect(typeof comment).toBe("object")
+                expect(Object.keys(comment)).toHaveLength(6)
+                expect(comment).toMatchObject({
+                    comment_id: 19,
+                    body: expect.any(String),
+                    article_id: expect.any(Number),
+                    author: expect.any(String),
+                    votes: expect.any(Number),
+                    created_at: expect.any(String),
+                })
+            })
+    })
+    test("status: 201 - should ignore unnecessary properties given", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+            unnecessaryProperty: "unnecessary",
+        }
+        return request(app)
+            .post("/api/articles/11/comments")
+            .send(testComment)
+            .expect(201)
+    })
+    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+        }
+        return request(app)
+            .post("/api/articles/NaN/comments")
+            .send(testComment)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should responds with bad request when required values is not given", () => {
+        const testComment = {
+            username: "butter_bridge",
+        }
+        return request(app)
+            .post("/api/articles/1/comments")
+            .send(testComment)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status 404 - should responds with not found when username is an a non existent user", () => {
+        const testComment = {
+            username: "obi",
+            body: "a new comment",
+        }
+        return request(app)
+            .post("/api/articles/1/comments")
+            .send(testComment)
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+    test("status: 404 - should responds with not found when article_id is a non existent id", () => {
+        const testComment = {
+            username: "butter_bridge",
+            body: "a new comment",
+        }
+        return request(app)
+            .post("/api/articles/888888/comments")
+            .send(testComment)
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
@@ -265,6 +353,26 @@ describe("PATCH /api/articles/:article_id", () => {
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
+            })
+    })
+})
+describe("GET /api/users", () => {
+    test("status: 200 - should respond with an array of objects, each object should have the correct keys", () => {
+        return request(app)
+            .get("/api/users")
+            .expect(200)
+            .then(({ body }) => {
+                const { users } = body
+
+                expect(users).toBeInstanceOf(Array)
+                expect(users).toHaveLength(4)
+                users.forEach((user) => {
+                    expect(user).toMatchObject({
+                        username: expect.any(String),
+                        name: expect.any(String),
+                        avatar_url: expect.any(String),
+                    })
+                })
             })
     })
 })
