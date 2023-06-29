@@ -11,6 +11,8 @@ const {
 } = require("./controllers/articles.controllers")
 
 const { getAllUsers } = require("./controllers/users.controllers")
+
+const { removeCommentById } = require("./controllers/comments.controllers")
 const {
     handleServerErrors,
     handlePsqlErrors,
@@ -34,6 +36,8 @@ app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
 app.post("/api/articles/:article_id/comments", addCommentForAnArticle)
 
 app.patch("/api/articles/:article_id", patchArticleById)
+
+app.delete("/api/comments/:comment_id", removeCommentById)
 
 app.get("/api/users", getAllUsers)
 

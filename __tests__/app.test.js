@@ -117,7 +117,7 @@ describe("GET /api/articles/:article_id", () => {
                 )
             })
     })
-    test("status: 400 - should responds with bad request when article_id is an invalid type", () => {
+    test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
         return request(app)
             .get("/api/articles/NaN")
             .expect(400)
@@ -233,6 +233,14 @@ describe("POST /api/articles/:article_id/comments", () => {
                 expect(body.msg).toBe("bad request")
             })
     })
+    test("status: 400 - should respond with bad request when comment_id is an invalid type", () => {
+        return request(app)
+            .delete("/api/comments/NaN")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
     test("status: 400 - should responds with bad request when required values is not given", () => {
         const testComment = {
             username: "butter_bridge",
@@ -266,6 +274,15 @@ describe("POST /api/articles/:article_id/comments", () => {
         return request(app)
             .post("/api/articles/888888/comments")
             .send(testComment)
+    })
+})
+describe("DELETE /api/comments/:comment_id", () => {
+    test("status: 204 - delete the given comment by comment_id", () => {
+        return request(app).delete("/api/comments/1").expect(204)
+    })
+    test("status: 404 - should respond not found when comment_id is a non existent id", () => {
+        return request(app)
+            .delete("/api/comments/888888")
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
