@@ -2,13 +2,24 @@ const {
     selectAllArticles,
     selectArticleById,
     selectCommentsByArticleId,
+    updateArticleById,
     insertCommentByArticleId,
-    selectUserByUsername,
+    checkTopicExists,
 } = require("../models/articles.models")
 
-exports.getAllArticles = (_, res, next) => {
-    selectAllArticles()
-        .then((articles) => {
+exports.getAllArticles = (req, res, next) => {
+    const { topic } = req.query
+    const { sort_by } = req.query
+    const { order } = req.query
+    const promises = [selectAllArticles(topic, sort_by, order)]
+
+    if (topic) {
+        promises.push(checkTopicExists(topic))
+    }
+    Promise.all(promises)
+        .then((resolvedPromises) => {
+            const articles = resolvedPromises[0]
+
             res.status(200).send({ articles })
         })
         .catch((err) => {
@@ -36,6 +47,23 @@ exports.getCommentsByArticleId = (req, res, next) => {
             const comments = resolvedPromises[0]
 
             res.status(200).send({ comments })
+        })
+        .catch((err) => {
+            next(err)
+        })
+}
+
+exports.patchArticleById = (req, res, next) => {
+    const { article_id } = req.params
+    const { inc_votes } = req.body
+    const promises = [
+        selectArticleById(article_id),
+        updateArticleById(article_id, inc_votes),
+    ]
+    Promise.all(promises)
+        .then((resolvedPromises) => {
+            const article = resolvedPromises[1]
+            res.status(200).send({ article })
         })
         .catch((err) => {
             next(err)
