@@ -10,7 +10,7 @@
     }
   },
   "GET /api/articles/:article_id": {
-    "description": "serves an object of a specific article",
+    "description": "serves a single article by article_id",
     "queries":[],
     "exampleResponse":  {
         "article": {
@@ -60,7 +60,7 @@
       }
     },
   "GET /api/users": {
-    "description": "serves an array of objects with all users",
+    "description": "serves with a list of users",
     "queries": [],
     "exampleResponse": {
       "users":[
