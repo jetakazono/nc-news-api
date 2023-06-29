@@ -5,8 +5,6 @@ const testData = require("../db/data/test-data")
 const app = require("../app")
 const db = require("../db/connection")
 const endPointsFile = require("../endpoints.json")
-const { forEach } = require("../db/data/test-data/comments")
-const articles = require("../db/data/test-data/articles")
 
 beforeEach(() => seed(testData))
 
