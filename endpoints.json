@@ -9,6 +9,13 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "POST /api/topics": {
+    "description": "serves an object of the newly added topic",
+    "queries": [],
+    "exampleResponse": {
+      "topics": [{ "slug": "football", "description": "Footie!" }]
+    }
+  },
   "GET /api/articles/:article_id": {
     "description": "serves an object of a specific article with total count of all the comments with this article_id",
     "queries":[],
