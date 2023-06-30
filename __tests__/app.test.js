@@ -425,6 +425,83 @@ describe("POST /api/articles/:article_id/comments", () => {
             .send(testComment)
     })
 })
+describe("PATCH /api/comments/:comment_id", () => {
+    test("status: 200 - should increment a comment votes by input given when it is a positive number and respond with the updated comment", () => {
+        const testNewVote = { inc_votes: 1 }
+        return request(app)
+            .patch("/api/comments/1")
+            .expect(200)
+            .send(testNewVote)
+            .then(({ body }) => {
+                const { comment } = body
+
+                expect(typeof comment).toBe("object")
+                expect(Object.keys(comment)).toHaveLength(6)
+                expect(comment).toMatchObject({
+                    comment_id: 1,
+                    body: expect.any(String),
+                    votes: 17,
+                    author: expect.any(String),
+                    article_id: expect.any(Number),
+                    created_at: expect.any(String),
+                })
+            })
+    })
+    test("status: 200 - should decrement a comment votes by input given when it is a negative number and respond with the updated comment", () => {
+        const testUpdateVotes = { inc_votes: -1 }
+        return request(app)
+            .patch("/api/comments/1")
+            .expect(200)
+            .send(testUpdateVotes)
+            .then(({ body }) => {
+                const { comment } = body
+
+                expect(typeof comment).toBe("object")
+                expect(Object.keys(comment)).toHaveLength(6)
+                expect(comment).toMatchObject({
+                    comment_id: 1,
+                    body: expect.any(String),
+                    votes: 15,
+                    author: expect.any(String),
+                    article_id: expect.any(Number),
+                    created_at: expect.any(String),
+                })
+            })
+    })
+    test("status: 400 - should respond with bad request when required value is not given", () => {
+        const testUpdateVotes = {}
+
+        return request(app)
+            .patch("/api/comments/1")
+            .send(testUpdateVotes)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when comment_id is an invalid type", () => {
+        const testUpdateVotes = { inc_votes: 1 }
+
+        return request(app)
+            .patch("/api/comments/NaN")
+            .send(testUpdateVotes)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 404 - should respond not found when comment is a non existent id", () => {
+        const testUpdateVotes = { inc_votes: 1 }
+
+        return request(app)
+            .patch("/api/comments/88888888")
+            .send(testUpdateVotes)
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+})
 describe("DELETE /api/comments/:comment_id", () => {
     test("status: 204 - delete the given comment by comment_id", () => {
         return request(app).delete("/api/comments/1").expect(204)
@@ -487,14 +564,13 @@ describe("PATCH /api/articles/:article_id", () => {
                 })
             })
     })
-    test("status: 400 - should respond with bad request when required value is not given ", () => {
+    test("status: 400 - should respond with bad request when required value is not given", () => {
         const testUpdateVotes = {}
 
         return request(app)
             .patch("/api/articles/1")
             .send(testUpdateVotes)
             .expect(400)
-            .send({})
             .then(({ body }) => {
                 expect(body.msg).toBe("bad request")
             })
