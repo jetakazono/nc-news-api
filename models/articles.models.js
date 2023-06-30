@@ -126,3 +126,16 @@ exports.insertNewArticle = (author, title, body, topic, article_img_url) => {
             return rows[0]
         })
 }
+
+exports.deleteArticleById = (article_id) => {
+    const queryStr = `
+        DELETE FROM articles
+        WHERE article_id = $1
+        RETURNING *;`
+    return db.query(queryStr, [article_id]).then(({ rows }) => {
+        if (!rows[0]) {
+            return Promise.reject({ status: 404, msg: "not found" })
+        }
+        return rows[0]
+    })
+}

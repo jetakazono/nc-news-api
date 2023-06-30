@@ -33,6 +33,11 @@
       }
     }
   },
+  "DELETE /api/articles/:article_id": {
+    "description": "Respond with: status 204 and no content",
+    "queries":[],
+    "exampleResponse":  {}
+  },
   "GET /api/articles": {
     "description": "serves an array of all articles sorted by date in descending order",
     "queries": ["author", "topic", "sort_by", "order"],

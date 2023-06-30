@@ -555,19 +555,6 @@ describe("PATCH /api/comments/:comment_id", () => {
             })
     })
 })
-describe("DELETE /api/comments/:comment_id", () => {
-    test("status: 204 - delete the given comment by comment_id", () => {
-        return request(app).delete("/api/comments/1").expect(204)
-    })
-    test("status: 404 - should respond not found when comment_id is a non existent id", () => {
-        return request(app)
-            .delete("/api/comments/888888")
-            .expect(404)
-            .then(({ body }) => {
-                expect(body.msg).toBe("not found")
-            })
-    })
-})
 describe("POST /api/articles", () => {
     test("status: 201 - should add a new article and responds with the newly added article", () => {
         const testNewArticle = {
@@ -786,6 +773,38 @@ describe("PATCH /api/articles/:article_id", () => {
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")
             })
+    })
+})
+describe("DELETE /api/comments/:comment_id", () => {
+    test("status: 204 - delete the given comment by comment_id", () => {
+        return request(app).delete("/api/comments/1").expect(204)
+    })
+    test("status: 400 - should respond bad request when comment_id is an invalid type", () => {
+        return request(app)
+            .delete("/api/comments/NaN")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 404 - should respond not found when comment_id is a non existent id", () => {
+        return request(app)
+            .delete("/api/comments/888888")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+})
+describe("DELETE /api/articles/:article_id", () => {
+    test("status: 204 - should delete an article based on an id, and its respective comments and responds with no content", () => {
+        return request(app).delete("/api/articles/1").expect(204)
+    })
+    test("status: 400 - should should respond bad request when comment_id is an invalid type", () => {
+        return request(app).delete("/api/articles/NaN").expect(400)
+    })
+    test("status: 404 - should should respond not found when comment_id is a non existent id", () => {
+        return request(app).delete("/api/articles/888888").expect(404)
     })
 })
 describe("GET /api/users", () => {
