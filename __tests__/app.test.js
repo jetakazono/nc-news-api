@@ -542,3 +542,35 @@ describe("GET /api/users", () => {
             })
     })
 })
+describe("GET /api/users/:username", () => {
+    test("should respond with a user object which should have the correct keys ", () => {
+        return request(app)
+            .get("/api/users/lurker")
+            .expect(200)
+            .then(({ body }) => {
+                const { user } = body
+
+                expect(user).toBeInstanceOf(Object)
+                expect(user.username).toBe("lurker")
+                expect(user).toHaveProperty("username")
+                expect(user).toHaveProperty("avatar_url")
+                expect(user).toHaveProperty("name")
+            })
+    })
+    test("should respond with bad request when user given is an invalid type", () => {
+        return request(app)
+            .get("/api/users/88888")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("should respond with not found when username given is a non existent user", () => {
+        return request(app)
+            .get("/api/users/Obi")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+})
