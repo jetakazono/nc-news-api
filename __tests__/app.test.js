@@ -66,6 +66,59 @@ describe("GET /api/topics", () => {
             })
     })
 })
+describe("POST POST /api/topics", () => {
+    test("status: 201 - should add a new topic and responds with the newly added topic", () => {
+        const testNewTopic = {
+            slug: "test topic name",
+            description: "test description",
+        }
+        return request(app)
+            .post("/api/topics")
+            .send(testNewTopic)
+            .expect(201)
+            .then(({ body }) => {
+                const { topic } = body
+
+                expect(topic).toBeInstanceOf(Object)
+                expect(topic).toMatchObject({
+                    slug: testNewTopic.slug,
+                    description: testNewTopic.description,
+                })
+            })
+    })
+    test("status: 201 - should ignore unnecessary properties given and consider only valid ones ", () => {
+        const testNewTopic = {
+            slug: "test topic name",
+            description: "test description",
+            unnecessaryProperty: "unnecessary",
+        }
+        return request(app)
+            .post("/api/topics")
+            .send(testNewTopic)
+            .expect(201)
+            .then(({ body }) => {
+                const { topic } = body
+
+                expect(topic).toBeInstanceOf(Object)
+                expect(topic).toMatchObject({
+                    slug: testNewTopic.slug,
+                    description: testNewTopic.description,
+                })
+            })
+    })
+    test("status: 400 - should respond with bad request when required values are not given", () => {
+        const testNewTopic = {
+            description: "test description",
+        }
+        return request(app)
+            .post("/api/topics")
+            .send(testNewTopic)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+})
 describe("GET /api/articles", () => {
     test("status: 200 - should respond with an articles array of article objects, each of which should have the correct keys, the objects should be sorted by date in descending order by default", () => {
         return request(app)
