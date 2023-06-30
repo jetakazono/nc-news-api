@@ -6,6 +6,7 @@ const {
     insertCommentByArticleId,
     checkTopicExists,
     insertNewArticle,
+    deleteArticleById,
 } = require("../models/articles.models")
 
 exports.getAllArticles = (req, res, next) => {
@@ -89,6 +90,18 @@ exports.addNewArticle = (req, res, next) => {
     insertNewArticle(author, title, body, topic, article_img_url)
         .then((article) => {
             res.status(201).send({ article })
+        })
+        .catch((err) => {
+            next(err)
+        })
+}
+
+exports.removeArticleById = (req, res, next) => {
+    const { article_id } = req.params
+
+    deleteArticleById(article_id)
+        .then((article) => {
+            res.status(204).send()
         })
         .catch((err) => {
             next(err)
