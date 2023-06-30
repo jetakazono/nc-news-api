@@ -109,3 +109,20 @@ exports.checkTopicExists = (topic) => {
         return rows
     })
 }
+
+exports.insertNewArticle = (author, title, body, topic, article_img_url) => {
+    if (Number(author) || Number(topic)) {
+        return Promise.reject({ status: 400, msg: "bad request" })
+    }
+    const queryStr = `
+        INSERT INTO articles
+            (title, topic, author, body, article_img_url)
+        VALUES
+            ($1, $2, $3, $4, $5)
+        RETURNING *;`
+    return db
+        .query(queryStr, [title, topic, author, body, article_img_url])
+        .then(({ rows }) => {
+            return rows[0]
+        })
+}
