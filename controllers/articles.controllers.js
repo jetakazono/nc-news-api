@@ -5,6 +5,7 @@ const {
     updateArticleById,
     insertCommentByArticleId,
     checkTopicExists,
+    insertNewArticle,
 } = require("../models/articles.models")
 
 exports.getAllArticles = (req, res, next) => {
@@ -76,6 +77,18 @@ exports.addCommentForAnArticle = (req, res, next) => {
     insertCommentByArticleId(article_id, username, body)
         .then((comment) => {
             res.status(201).send({ comment })
+        })
+        .catch((err) => {
+            next(err)
+        })
+}
+
+exports.addNewArticle = (req, res, next) => {
+    const { author, title, body, topic, article_img_url } = req.body
+
+    insertNewArticle(author, title, body, topic, article_img_url)
+        .then((article) => {
+            res.status(201).send({ article })
         })
         .catch((err) => {
             next(err)

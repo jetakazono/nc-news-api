@@ -184,7 +184,7 @@ describe("GET /api/articles", () => {
                 expect(articles).toBeSortedBy("author")
             })
     })
-    test("status: 200 - should ignore given unnecessary queries and consider only valid ones", () => {
+    test("status: 200 - should ignore unnecessary queries given and consider only valid ones", () => {
         return request(app)
             .get(
                 "/api/articles?topic=mitch&sort_by=author&unnecessary=unnecessary&order=asc&unnecessary=unnecessary"
@@ -432,6 +432,143 @@ describe("DELETE /api/comments/:comment_id", () => {
     test("status: 404 - should respond not found when comment_id is a non existent id", () => {
         return request(app)
             .delete("/api/comments/888888")
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+})
+describe("POST /api/articles", () => {
+    test("status: 201 - should add a new article and responds with the newly added article", () => {
+        const testNewArticle = {
+            author: "icellusedkars",
+            title: "test title",
+            body: "test body",
+            topic: "paper",
+            article_img_url: "test article img url link",
+            unnecessaryProperty: "unnecessary",
+        }
+        return request(app)
+            .post("/api/articles")
+            .send(testNewArticle)
+            .expect(201)
+            .then(({ body }) => {
+                const { article } = body
+
+                expect(article).toBeInstanceOf(Object)
+                expect(article).toMatchObject({
+                    article_id: expect.any(Number),
+                    title: testNewArticle.title,
+                    topic: testNewArticle.topic,
+                    author: testNewArticle.author,
+                    body: testNewArticle.body,
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: testNewArticle.article_img_url,
+                })
+            })
+    })
+    test("status: 201 - should ignore unnecessary properties given and consider only valid ones ", () => {
+        const testNewArticle = {
+            author: "icellusedkars",
+            title: "test title",
+            body: "test body",
+            topic: "paper",
+            article_img_url: "test article img url link",
+            unnecessaryProperty: "unnecessary",
+        }
+        return request(app)
+            .post("/api/articles")
+            .send(testNewArticle)
+            .expect(201)
+            .then(({ body }) => {
+                const { article } = body
+
+                expect(article).toBeInstanceOf(Object)
+                expect(article).toMatchObject({
+                    article_id: expect.any(Number),
+                    title: testNewArticle.title,
+                    topic: testNewArticle.topic,
+                    author: testNewArticle.author,
+                    body: testNewArticle.body,
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: testNewArticle.article_img_url,
+                })
+            })
+    })
+    test("status: 400 - should respond with bad request when required values are not given", () => {
+        const testNewArticle = {
+            body: "test body",
+            article_img_url: "test article img url link",
+        }
+        return request(app)
+            .post("/api/articles")
+            .send(testNewArticle)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when author is an invalid type", () => {
+        const testNewArticle = {
+            author: 88888,
+            title: "test title",
+            body: "test body",
+            topic: "paper",
+            article_img_url: "test article img url link",
+        }
+        return request(app)
+            .post("/api/articles")
+            .send(testNewArticle)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when topic is an invalid type", () => {
+        const testNewArticle = {
+            author: "icellusedkars",
+            title: "test title",
+            body: "test body",
+            topic: 88888,
+            article_img_url: "test article img url link",
+        }
+        return request(app)
+            .post("/api/articles")
+            .send(testNewArticle)
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 404 - should respond with not found when author given is a non existent user", () => {
+        const testNewArticle = {
+            author: "Obi",
+            title: "test title",
+            body: "test body",
+            topic: "paper",
+            article_img_url: "test article img url link",
+        }
+        return request(app)
+            .post("/api/articles")
+            .send(testNewArticle)
+            .expect(404)
+            .then(({ body }) => {
+                expect(body.msg).toBe("not found")
+            })
+    })
+    test("status: 404 - should respond with not found when topic given is a non existent topic", () => {
+        const testNewArticle = {
+            author: "icellusedkars",
+            title: "test title",
+            body: "test body",
+            topic: "dog",
+            article_img_url: "test article img url link",
+        }
+        return request(app)
+            .post("/api/articles")
+            .send(testNewArticle)
             .expect(404)
             .then(({ body }) => {
                 expect(body.msg).toBe("not found")

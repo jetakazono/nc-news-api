@@ -44,6 +44,24 @@
       ]
     }
   },
+  "POST /api/articles": {
+    "description": "serves an object of the newly added article",
+    "queries": [],
+    "exampleResponse": {
+      "articles": [
+        {
+          "article_id": 14,
+          "title": "test title",
+          "topic": "paper",
+          "author": "icellusedkars",
+          "body": "test body",
+          "created_at": "2023-06-30T09:53:19.522Z",
+          "votes": 0,
+          "article_img_url": "test article img url link"
+        }
+      ]
+    }
+  },
   "PATCH /api/articles/:article_id": {
     "description": "serves an object of a specific article updated",
     "queries": [],
