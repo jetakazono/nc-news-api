@@ -1,14 +1,23 @@
 const db = require("../db/connection")
 
-exports.selectAllArticles = (topic, sort_by = "created_at", order = "DESC") => {
+exports.selectAllArticles = (
+    topic,
+    sort_by = "created_at",
+    order = "DESC",
+    limit,
+    p
+) => {
+    let l
     const queryValues = []
     const validSortBy = [
-        "created_at",
-        "author",
+        "article_id",
         "title",
         "topic",
+        "author",
+        "body",
+        "created_at",
         "votes",
-        "comment_count",
+        "article_img_url",
     ]
     const validOrderBy = ["DESC", "ASC"]
 
@@ -23,18 +32,41 @@ exports.selectAllArticles = (topic, sort_by = "created_at", order = "DESC") => {
     }
 
     let queryStr = `
-    SELECT a.article_id, a.author, a.title, a.topic, a.created_at, a.votes, a.article_img_url, 
-    COUNT(c.comment_id) AS comment_count
-    FROM articles a 
-    LEFT JOIN comments c ON c.article_id = a.article_id `
+        SELECT a.article_id, a.author, a.title, a.topic, a.created_at, a.votes,             a.article_img_url, 
+        COUNT(c.comment_id) AS comment_count, total_count
+        FROM articles a 
+        LEFT JOIN comments c ON c.article_id = a.article_id 
+        CROSS JOIN (SELECT COUNT(*) AS total_count FROM articles) AS total_count `
 
     if (topic) {
         queryStr += `WHERE a.topic = $1 `
         queryValues.push(topic)
     }
     if (sort_by) {
-        queryStr += `GROUP BY a.article_id ORDER BY a.${sort_by} ${order}`
+        queryStr += `GROUP BY a.article_id, total_count ORDER BY a.${sort_by} ${order} `
     }
+
+    if (limit) {
+        if (!Number(limit)) {
+            return Promise.reject({
+                status: 400,
+                msg: "bad request",
+            })
+        }
+        l = limit > 0 ? limit : 10
+        queryStr += `LIMIT ${l} `
+    }
+    if (p) {
+        if (!Number(p)) {
+            return Promise.reject({
+                status: 400,
+                msg: "bad request",
+            })
+        }
+        const page = p > 0 ? p : 1
+        queryStr += `OFFSET((${page} - 1) * ${l})`
+    }
+
     return db.query(queryStr, queryValues).then(({ rows }) => {
         return rows
     })
@@ -58,13 +90,29 @@ exports.selectArticleById = (article_id) => {
     })
 }
 
-exports.selectCommentsByArticleId = (article_id) => {
-    const queryStr = `
+exports.selectCommentsByArticleId = (article_id, limit, p) => {
+    let l
+    let queryStr = `
         SELECT c.comment_id, c.votes, c.created_at, c.author, c.body, c.article_id
         FROM comments c
         INNER JOIN articles a ON a.article_id = c.article_id
         WHERE c.article_id = $1
-        ORDER BY c.created_at DESC;`
+        ORDER BY c.created_at DESC `
+
+    if (limit) {
+        if (!Number(limit)) {
+            return Promise.reject({ status: 400, msg: "bad request" })
+        }
+        l = limit > 0 ? limit : 10
+        queryStr += `LIMIT ${l} `
+    }
+    if (p) {
+        if (!Number(p)) {
+            return Promise.reject({ status: 400, msg: "bad request" })
+        }
+        const page = p > 0 ? p : 1
+        queryStr += `OFFSET((${page} - 1) * ${l})`
+    }
     return db.query(queryStr, [article_id]).then(({ rows }) => {
         return rows
     })

@@ -13,8 +13,9 @@ exports.getAllArticles = (req, res, next) => {
     const { topic } = req.query
     const { sort_by } = req.query
     const { order } = req.query
-    const promises = [selectAllArticles(topic, sort_by, order)]
-
+    const { limit } = req.query
+    const { p } = req.query
+    const promises = [selectAllArticles(topic, sort_by, order, limit, p)]
     if (topic) {
         promises.push(checkTopicExists(topic))
     }
@@ -40,8 +41,10 @@ exports.getArticleById = (req, res, next) => {
 
 exports.getCommentsByArticleId = (req, res, next) => {
     const { article_id } = req.params
+    const { limit } = req.query
+    const { p } = req.query
     const promises = [
-        selectCommentsByArticleId(article_id),
+        selectCommentsByArticleId(article_id, limit, p),
         selectArticleById(article_id),
     ]
     Promise.all(promises)
