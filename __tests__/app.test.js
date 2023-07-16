@@ -251,6 +251,53 @@ describe("GET /api/articles", () => {
                 expect(articles).toBeSortedBy("author")
             })
     })
+    test("status: 200 - should accept query limit and responds amount of articles according to the given query", () => {
+        return request(app)
+            .get("/api/articles?limit=5")
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.articles.length).toBe(5)
+            })
+    })
+    test("status: 200 - should accept query p should responds with the articles paginated according to the given queries", () => {
+        return request(app)
+            .get(
+                "/api/articles?topic=mitch&sort_by=author&order=asc&limit=5&p=3"
+            )
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.articles.length).toBeLessThanOrEqual(5)
+            })
+    })
+    test("status: 200 - should display the total number of articles with any filters applied", () => {
+        return request(app)
+            .get("/api/articles?sort_by=votes&order=asc&limit=5&p=2")
+            .expect(200)
+            .then(({ body }) => {
+                const { articles } = body
+                expect(body.articles.length).toBe(5)
+                articles.forEach((article) => {
+                    expect(article).toHaveProperty("total_count"),
+                        expect.any(Number)
+                })
+            })
+    })
+    test("status: 400 - should respond with bad request when limit given is an invalid type", () => {
+        return request(app)
+            .get("/api/articles?limit=NaN")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when page given is an invalid type", () => {
+        return request(app)
+            .get("/api/articles?p=NaN")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
     test("status: 400 - should respond with bad request when topic given is an invalid type", () => {
         return request(app)
             .get("/api/articles?topic=88888")
@@ -367,6 +414,46 @@ describe("GET /api/articles/:article_id/comments", () => {
             .expect(200)
             .then(({ body }) => {
                 expect(body.comments).toHaveLength(0)
+            })
+    })
+    test("status: 200 - should accept queries limit and responds with the comments paginated according to the inputs", () => {
+        return request(app)
+            .get("/api/articles/1/comments?limit=5")
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.comments).toHaveLength(5)
+            })
+    })
+    test("status: 200 - should accept query p when limit is given together and responds with the comments paginated according to the inputs", () => {
+        return request(app)
+            .get("/api/articles/1/comments?limit=5&p=1")
+            .expect(200)
+            .then(({ body }) => {
+                expect(body.comments).toHaveLength(5)
+            })
+    })
+    test("status: 400 - should respond with bad request when limit is an invalid type", () => {
+        return request(app)
+            .get("/api/articles/1/comments?limit=NaN")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when p is given without limit", () => {
+        return request(app)
+            .get("/api/articles/1/comments?p=2")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
+            })
+    })
+    test("status: 400 - should respond with bad request when p is an invalid type", () => {
+        return request(app)
+            .get("/api/articles/1/comments?limit=5&p=NaN")
+            .expect(400)
+            .then(({ body }) => {
+                expect(body.msg).toBe("bad request")
             })
     })
     test("status: 400 - should respond with bad request when article_id is an invalid type", () => {
