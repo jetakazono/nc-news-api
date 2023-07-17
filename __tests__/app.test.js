@@ -271,14 +271,16 @@ describe("GET /api/articles", () => {
     })
     test("status: 200 - should display the total number of articles with any filters applied", () => {
         return request(app)
-            .get("/api/articles?sort_by=votes&order=asc&limit=5&p=2")
+            .get(
+                "/api/articles?topic=mitch&sort_by=votes&order=asc&limit=5&p=1"
+            )
             .expect(200)
             .then(({ body }) => {
                 const { articles } = body
                 expect(body.articles.length).toBe(5)
                 articles.forEach((article) => {
-                    expect(article).toHaveProperty("total_count"),
-                        expect.any(Number)
+                    expect(article).toHaveProperty("total_count")
+                    expect(article.total_count).toBe("12")
                 })
             })
     })

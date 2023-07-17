@@ -30,18 +30,25 @@ exports.selectAllArticles = (
             msg: "bad request",
         })
     }
+    let crossJoin = `CROSS JOIN (
+        SELECT COUNT(*) AS total_count 
+        FROM articles  `
+
+    let queryStrWhere = ""
+
+    if (topic) {
+        queryStrWhere = ` WHERE a.topic = $1 `
+        crossJoin += ` WHERE topic = $1 `
+        queryValues.push(topic)
+    }
 
     let queryStr = `
         SELECT a.article_id, a.author, a.title, a.topic, a.created_at, a.votes,             a.article_img_url, 
         COUNT(c.comment_id) AS comment_count, total_count
         FROM articles a 
         LEFT JOIN comments c ON c.article_id = a.article_id 
-        CROSS JOIN (SELECT COUNT(*) AS total_count FROM articles) AS total_count `
+        ${crossJoin} ) AS total_count  ${queryStrWhere}`
 
-    if (topic) {
-        queryStr += `WHERE a.topic = $1 `
-        queryValues.push(topic)
-    }
     if (sort_by) {
         queryStr += `GROUP BY a.article_id, total_count ORDER BY a.${sort_by} ${order} `
     }
