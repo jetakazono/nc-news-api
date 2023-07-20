@@ -44,14 +44,14 @@ exports.selectAllArticles = (
     }
 
     let queryStr = `
-        SELECT a.article_id, a.author, a.title, a.topic, a.created_at, a.votes,             a.article_img_url, 
+        SELECT a.article_id, a.author, a.title, a.topic, a.created_at, a.votes, a.article_img_url, 
         COUNT(c.comment_id) AS comment_count, total_count
         FROM articles a 
         LEFT JOIN comments c ON c.article_id = a.article_id 
         ${crossJoin} ) AS total_count  ${queryStrWhere}`
 
     if (sort_by) {
-        queryStr += `GROUP BY a.article_id, total_count ORDER BY a.${sort_by} ${order} `
+        queryStr += `GROUP BY a.article_id, total_count ORDER BY ${sort_by} ${order} `
     }
 
     if (limit) {
@@ -74,7 +74,7 @@ exports.selectAllArticles = (
         const page = p > 0 ? p : 1
         queryStr += `OFFSET((${page} - 1) * ${l})`
     }
-    console.log(queryStr)
+    // console.log(queryStr)
     return db.query(queryStr, queryValues).then(({ rows }) => {
         return rows
     })
