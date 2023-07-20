@@ -18,6 +18,7 @@ exports.selectAllArticles = (
         "created_at",
         "votes",
         "article_img_url",
+        "comment_count",
     ]
     const validOrderBy = ["DESC", "ASC"]
 
@@ -73,7 +74,7 @@ exports.selectAllArticles = (
         const page = p > 0 ? p : 1
         queryStr += `OFFSET((${page} - 1) * ${l})`
     }
-
+    console.log(queryStr)
     return db.query(queryStr, queryValues).then(({ rows }) => {
         return rows
     })
