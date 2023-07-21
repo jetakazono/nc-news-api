@@ -381,7 +381,7 @@ describe("GET /api/articles/:article_id", () => {
             .get("/api/articles/88888888")
             .expect(404)
             .then(({ body }) => {
-                expect(body.msg).toBe("not found")
+                expect(body.msg).toBe("article not found")
             })
     })
 })
@@ -471,7 +471,7 @@ describe("GET /api/articles/:article_id/comments", () => {
             .get("/api/articles/88888888/comments")
             .expect(404)
             .then(({ body }) => {
-                expect(body.msg).toBe("not found")
+                expect(body.msg).toBe("article not found")
             })
     })
 })
@@ -860,7 +860,7 @@ describe("PATCH /api/articles/:article_id", () => {
             .send(testUpdateVotes)
             .expect(404)
             .then(({ body }) => {
-                expect(body.msg).toBe("not found")
+                expect(body.msg).toBe("article not found")
             })
     })
 })
