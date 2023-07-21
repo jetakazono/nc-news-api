@@ -159,7 +159,7 @@ exports.checkTopicExists = (topic) => {
         WHERE slug = $1;`
     return db.query(queryStr, [topic]).then(({ rows }) => {
         if (!rows.length) {
-            return Promise.reject({ status: 404, msg: "not found" })
+            return Promise.reject({ status: 404, msg: "topic not found" })
         }
 
         return rows
